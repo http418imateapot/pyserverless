@@ -1,0 +1,40 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.9
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pycodestyle
+
+      - name: Run Python linting
+        run: |
+          ROOT_PATH="PyServerless"
+          if [ ! -d "$ROOT_PATH" ]; then
+            echo "Directory $ROOT_PATH does not exist. Exiting."
+            exit 0
+          fi
+
+          PEP8_ERROR_COUNT_CMD="pycodestyle --ignore=E501,W504 ./$ROOT_PATH"
+          PEP8_ERROR_COUNT=$($PEP8_ERROR_COUNT_CMD | wc -l)
+
+          if [ "$PEP8_ERROR_COUNT" -eq 0 ]; then
+            echo "PEP8 passed, no linting errors found."
+          else
+            $PEP8_ERROR_COUNT_CMD
+            echo "==============================="
+            echo "PEP8 failed with $PEP8_ERROR_COUNT errors."
+            exit 1
+          fi

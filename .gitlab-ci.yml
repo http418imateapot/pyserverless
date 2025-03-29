@@ -1,0 +1,31 @@
+stages:
+  - test
+
+lint-python:
+  stage: test
+  image: python:3.9
+  before_script:
+    - pip install --upgrade pip
+    - pip install pycodestyle
+  script:
+    - |
+      ROOT_PATH="PyServerless"
+      if [ ! -d "$ROOT_PATH" ]; then
+          echo "Directory $ROOT_PATH does not exist. Skipping Python linting."
+          exit 0
+      else
+          echo "Linting Python files in $ROOT_PATH..."
+          PEP8_ERROR_COUNT_CMD="pycodestyle --ignore=E501,W504 ./$ROOT_PATH"
+          PEP8_ERROR_COUNT=$($PEP8_ERROR_COUNT_CMD | wc -l)
+
+          if [ "$PEP8_ERROR_COUNT" -eq 0 ]; then
+              echo "PEP8 passed, no linting errors found."
+          else
+              $PEP8_ERROR_COUNT_CMD
+              echo "==============================="
+              echo "PEP8 failed with $PEP8_ERROR_COUNT errors."
+              exit 1
+          fi
+      fi
+  only:
+    - branches
